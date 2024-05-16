@@ -74,12 +74,9 @@ public class Expansion extends PlaceholderExpansion {
         if (commandLabel.equals("serveruptime"))
             return String.valueOf(TimeFormat.Uptime());
         if (commandLabel.equals("position")) {
-
             try {
                 JSONParser jsonParser = new JSONParser();
-
                 File dir = new File(plugin.storagePath);
-
                 File[] fileList = dir.listFiles();
 
                 int i = 0;
@@ -95,7 +92,7 @@ public class Expansion extends PlaceholderExpansion {
                         TopPlayers element = new TopPlayers(playerJSON.get("lastName").toString(),
                                 playerJSON.get("uuid").toString(), Integer.parseInt(playerJSON.get("time").toString()));
 
-                        if (element.name == player.getName())
+                        if (element.name.equals(player.getName()))
                             target = element;
                         allPlayers.add(element);
                     }
@@ -104,7 +101,6 @@ public class Expansion extends PlaceholderExpansion {
                     Collections.reverse(allPlayers);
 
                     i = allPlayers.indexOf(target);
-
                 }
                 return i >= 0 ? i + "" : "0";
             } catch (Exception e) {
@@ -131,22 +127,22 @@ public class Expansion extends PlaceholderExpansion {
         if (commandLabel.equals("time_minutes")) {
             long sec = Duration.of(chat.ticksPlayed(player), ChronoUnit.SECONDS).getSeconds();
             long min = sec / 60;
-            return String.valueOf(new Long(min).intValue());
+            return String.valueOf(Long.valueOf(min).intValue());
         }
         if (commandLabel.equals("time_hours")) {
             long sec = Duration.of(chat.ticksPlayed(player), ChronoUnit.SECONDS).getSeconds();
             long min = sec / 60, hour = min / 60;
-            return String.valueOf(new Long(hour).intValue());
+            return String.valueOf(Long.valueOf(hour).intValue());
         }
         if (commandLabel.equals("time_days")) {
             long sec = Duration.of(chat.ticksPlayed(player), ChronoUnit.SECONDS).getSeconds();
             long min = sec / 60, hour = min / 60, day = hour / 24;
-            return String.valueOf(new Long(day).intValue());
+            return String.valueOf(Long.valueOf(day).intValue());
         }
         if (commandLabel.equals("time_weeks")) {
             long sec = Duration.of(chat.ticksPlayed(player), ChronoUnit.SECONDS).getSeconds();
             long min = sec / 60, hour = min / 60, day = hour / 24, week = day / 7;
-            return String.valueOf(new Long(week).intValue());
+            return String.valueOf(Long.valueOf(week).intValue());
         }
         if (commandLabel.equals("session")) {
             return String.valueOf(TimeFormat
@@ -156,4 +152,5 @@ public class Expansion extends PlaceholderExpansion {
             return String.valueOf(chat.sessionsPlayed(player));
         return null;
     }
+
 }
