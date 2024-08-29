@@ -2,6 +2,7 @@ package me.f64.playtime.utils;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 import java.util.logging.Level;
 
 import org.bukkit.configuration.file.FileConfiguration;
@@ -21,7 +22,7 @@ public class ConfigWrapper {
         this.fileName = fileName;
     }
 
-    public void createFile(String s, String h) {
+    public void createFile(String s, List<String> h) {
         reloadConfig();
         saveConfig();
         loadConfig(h);
@@ -37,8 +38,8 @@ public class ConfigWrapper {
         return this.config;
     }
 
-    public void loadConfig(String h) {
-        this.config.options().header(h);
+    public void loadConfig(List<String> h) {
+        this.config.options().setHeader(h);
         this.config.options().copyDefaults(true);
         saveConfig();
     }

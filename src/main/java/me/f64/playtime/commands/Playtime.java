@@ -1,10 +1,11 @@
 package me.f64.playtime.commands;
 
-import java.io.File;
 import java.io.FileReader;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import me.f64.playtime.Main;
 import me.f64.playtime.utils.ConfigWrapper;
@@ -17,6 +18,7 @@ import org.bukkit.command.TabExecutor;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.util.StringUtil;
+import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import me.f64.playtime.utils.Chat;
@@ -28,21 +30,29 @@ public class Playtime implements TabExecutor {
     public Playtime(Main instance) {
         plugin = instance;
         Playtime.config = new ConfigWrapper(instance, null, "config.yml");
-        Playtime.config.createFile(null,
-                "Playtime By F64_Rx - Need Help? PM me on Spigot or post in the discussion.\r\n" + "\r\n"
-                        + " =================\r\n" + " | CONFIGURATION |\r\n" + " =================\r\n" + "\r\n"
-                        + " available placeholders\r\n" + " %playtime_player% - returns the player name\r\n"
-                        + " %offlineplayer% - returns the offline player name\r\n"
-                        + " %offlinetime% - shows offline time of a player\r\n"
-                        + " %offlinetimesjoined% - shows the amount of joins a player has had\r\n"
-                        + " %playtime_time% - shows time played\r\n"
-                        + " %playtime_timesjoined% - shows the amount of times the player has joined the server\r\n"
-                        + " %playtime_serveruptime% - shows the uptime of the server\r\n"
-                        + " %playtime_position% - shows the players current position\r\n"
-                        + " %playtime_top_#_name% - shows the name of the top 10\r\n"
-                        + " %playtime_top_#_time% - shows the time of the top 10\r\n"
-                        + " You can also use any other placeholder that PlaceholderAPI supports :) \r\n" + "");
+        List<String> headerLines = Arrays.asList(
+            "Playtime By F64_Rx - Need Help? PM me on Spigot or post in the discussion.",
+                "",
+                " =================",
+                " | CONFIGURATION |",
+                " =================",
+                "",
+                " available placeholders",
+                " %playtime_player% - returns the player name",
+                " %offlineplayer% - returns the offline player name",
+                " %offlinetime% - shows offline time of a player",
+                " %offlinetimesjoined% - shows the amount of joins a player has had",
+                " %playtime_time% - shows time played",
+                " %playtime_timesjoined% - shows the amount of times the player has joined the server",
+                " %playtime_serveruptime% - shows the uptime of the server",
+                " %playtime_position% - shows the player's current position",
+                " %playtime_top_#_name% - shows the name of the top 10",
+                " %playtime_top_#_time% - shows the time of the top 10",
+                " You can also use any other placeholder that PlaceholderAPI supports :)"
+        );
+        Playtime.config.createFile(null, headerLines);
         FileConfiguration c = Playtime.config.getConfig();
+        c.addDefault("playerJoin.forceSave", false);
         c.addDefault("time.second.enabled", true);
         c.addDefault("time.second.prefix", "s");
         c.addDefault("time.minute.enabled", true);
@@ -76,12 +86,15 @@ public class Playtime implements TabExecutor {
     }
 
     public String getPlayerTime(String name) {
-        JSONParser jsonParser = new JSONParser();
-        try {
-            FileReader reader = new FileReader(plugin.getPlayerPath(name));
-            JSONObject player = (JSONObject) jsonParser.parse(reader);
-            reader.close();
-            return player.get("time").toString();
+        try (FileReader reader = new FileReader(plugin.storagePath)) {
+            JSONParser jsonParser = new JSONParser();
+            JSONArray players = (JSONArray) jsonParser.parse(reader);
+            for (Object o : players) {
+                JSONObject player = (JSONObject) o;
+                if (player.get("lastName").equals(name)) {
+                    return player.get("time").toString();
+                }
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -89,12 +102,15 @@ public class Playtime implements TabExecutor {
     }
 
     public String getPlayerJoins(String name) {
-        JSONParser jsonParser = new JSONParser();
-        try {
-            FileReader reader = new FileReader(plugin.getPlayerPath(name));
-            JSONObject player = (JSONObject) jsonParser.parse(reader);
-            reader.close();
-            return player.get("joins").toString();
+        try (FileReader reader = new FileReader(plugin.storagePath)) {
+            JSONParser jsonParser = new JSONParser();
+            JSONArray players = (JSONArray) jsonParser.parse(reader);
+            for (Object o : players) {
+                JSONObject player = (JSONObject) o;
+                if (player.get("lastName").equals(name)) {
+                    return player.get("joins").toString();
+                }
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -103,35 +119,17 @@ public class Playtime implements TabExecutor {
 
     public static TopPlayers[] getTopTen() {
         TopPlayers[] topTen = {};
-        try {
+        try (FileReader reader = new FileReader(plugin.storagePath)) {
             JSONParser jsonParser = new JSONParser();
+            JSONArray players = (JSONArray) jsonParser.parse(reader);
 
-            File dir = new File(plugin.storagePath);
-
-            File[] fileList = dir.listFiles();
-
-            if (fileList != null) {
-                ArrayList<TopPlayers> allPlayers = new ArrayList<>();
-
-                for (File jsonFile : fileList) {
-                    FileReader reader = new FileReader(jsonFile);
-                    JSONObject player = (JSONObject) jsonParser.parse(reader);
-                    reader.close();
-
-                    allPlayers.add(new TopPlayers(player.get("lastName").toString(), player.get("uuid").toString(),
-                            Integer.parseInt(player.get("time").toString())));
-                }
-
-                allPlayers.sort(Comparator.comparing(e -> e.time));
-                Collections.reverse(allPlayers);
-
-                int len = Math.min(allPlayers.size(), 10);
-                topTen = new TopPlayers[len];
-                topTen[0] = allPlayers.get(0);
-
-                for (int i = 0; i < len; ++i) {
-                    topTen[i] = allPlayers.get(i);
-                }
+            int len = Math.min(players.size(), 10);
+            topTen = new TopPlayers[len];
+            for (int i = 0; i < len; ++i) {
+                JSONObject player = (JSONObject) players.get(i);
+                TopPlayers top = new TopPlayers(player.get("lastName").toString(), player.get("uuid").toString(),
+                        Integer.parseInt(player.get("time").toString()));
+                topTen[i] = top;
             }
             return topTen;
         } catch (Exception e) {
@@ -183,6 +181,7 @@ public class Playtime implements TabExecutor {
                         for (String reloadConfig : c.getStringList("messages.reload_config"))
                             Chat.message(sender, player, reloadConfig);
                         Playtime.config.reloadConfig();
+                        Playtime.plugin.playerJoinForceSave = c.getBoolean("playerJoin.forceSave");
                     } else if (args[0].equals("uptime")) {
                         if (!(sender.hasPermission("playtime.uptime"))) {
                             for (String noPermission : c.getStringList("messages.no_permission"))

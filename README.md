@@ -1,27 +1,16 @@
+# PlayTime (fork of fork) 
+A spigot plugin that records playtime stats.
 
-Description:
-Playtime is a simple plugin that i made to allow players to view their time played or another player's time played on the server. playtime is fully customizable and can be done from the configuration file.
+Thank you to the original developers; this is a fork of a fork.
 
-Player Data:
-To reset the player data delete the stats folder inside of the world folder.
+## Differences
+This was created to fix some data errors I have been experiencing with PlayTime v3.7. To stay updated, it was forked from 852DuartePls's release for 1.20.6 (for which at the time of forking, the pull request had not been accepted). 
 
-Commands/Permissions:
-- /playtime - shows your time played on the server - Permission: playtime.check
-- /playtimetop - shows the top 10 playtimes on the server - Permission: playtime.check
-- /playtime <player> - shows another player's time played on the server - Permission: playtime.check
-- /serveruptime - shows the server online time - Permission: playtime.uptime
-- /playtimereload - reloads config messages - Permission: playtime.reload
- 
-  playtime:
-aliases: [timeplayed, pt]
+#### Changelog
+- improved JSON handling and formatting
+- fixed some deprecated methods
+- reverted most of OlafHammer's 'multiserver support' changes (commit `34747ed69c9c9c0fe7b17cf53a885f41773485d9`)
 
-  playtimetop:
-aliases: [timeplayedtop, ptt]
-
-  serveruptime:
-aliases: [uptime, sp]
-
-  playtimereload:
-aliases: [ptreload, ptr]
- 
- If your a developer and want to add onto the plugin make sure to create a pull request and ill look into it :)
+## Downstream
+- **Grandparent:** PlayTime @ https://github.com/Twi5TeD/PlayTime (commit `dc9b1c4bbb11c8b57c00751bc42f14645edf81dd`) by Twi5TeD + more
+- **Parent:** PlayTime @ https://github.com/Twi5TeD/PlayTime (commit `dc9b1c4bbb11c8b57c00751bc42f14645edf81dd`) by 852DuartePls
