@@ -1,16 +1,35 @@
 # PlayTime (fork of fork) 
-A spigot plugin that records playtime stats.
+A spigot plugin that records players' playtime stats.
 
-Thank you to the original developers; this is a fork of a fork.
+**Thank you to the original developers F64_Rx, Twi5TeD, 852DuartePls + more; this is a fork of a fork.** It was created to fix some data errors I was experiencing with PlayTime v3.7. I forked it from 852DuartePls's release for 1.20.6 (for which at the time of creating this, the pull request has not been accepted), which is a fork of Twi5TeD's PlayTime repo. 
 
-## Differences
-This was created to fix some data errors I have been experiencing with PlayTime v3.7. To stay updated, it was forked from 852DuartePls's release for 1.20.6 (for which at the time of forking, the pull request had not been accepted). 
+## Dependencies
+- **Java 17+**: REQUIRED
+- **Spigot 1.20.4+**: UNTESTED ON OLDER VERSIONS
+- **PlaceholderAPI**: OPTIONAL
 
-#### Changelog
-- improved JSON handling and formatting
-- fixed some deprecated methods
-- reverted most of OlafHammer's 'multiserver support' changes (commit `34747ed69c9c9c0fe7b17cf53a885f41773485d9`)
+## Stream Changelog
+- ***This* plugin:** https://github.com/tbm00/PlayTime
 
-## Downstream
-- **Grandparent:** PlayTime @ https://github.com/Twi5TeD/PlayTime (commit `dc9b1c4bbb11c8b57c00751bc42f14645edf81dd`) by Twi5TeD + more
-- **Parent:** PlayTime @ https://github.com/Twi5TeD/PlayTime (commit `dc9b1c4bbb11c8b57c00751bc42f14645edf81dd`) by 852DuartePls
+    v3.8.1
+    - added file lock for asynchronous file writing tasks
+    - refactored playerdata save calls
+
+    v3.8, commit `be10c1fdb`
+    - reverted to "legacy" config only (removed OlafHammer's multiserver support)
+    - improved JSON handling and formatting
+    - fixed some deprecated methods
+- **Parent:** https://github.com/852DuartePls/PlayTime
+
+    v3.7, commit `7c6f99740`
+    - switched from 1.8.8 to 1.20.4 spigot api
+    - fixed some deprecated methods
+- **Grandparent:** https://github.com/Twi5TeD/PlayTime
+
+    v3.7, commit `dc9b1c4bb`
+    - minor changes, finalized version 3.7
+
+- **Great-Grandparent:** https://github.com/Twi5TeD/PlayTime
+
+    v3.6, commit `34747ed69`
+    - added OlafHammer's multiserver support

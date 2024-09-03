@@ -6,7 +6,7 @@
 
     <groupId>com.github.twi5ted</groupId>
     <artifactId>playtime</artifactId>
-    <version>3.8</version>
+    <version>3.8.1</version>
     <name>PlayTime</name>
     <packaging>jar</packaging>
 

@@ -29,6 +29,7 @@ public class Main extends JavaPlugin implements Listener {
     public static Plugin plugin;
     public String storagePath = getDataFolder() + "/userdata.json";
     public boolean playerJoinForceSave;
+    private final static Object fileLock = new Object();
 
     @Override
     public void onEnable() {
@@ -76,20 +77,10 @@ public class Main extends JavaPlugin implements Listener {
     }
 
     @EventHandler
-    @SuppressWarnings("unchecked")
     public void onPlayerJoin(PlayerJoinEvent e) {
         Player player = e.getPlayer();
-        JSONObject target = new JSONObject();
-
-        Chat chat = new Chat(this);
-        if (!(player.hasPlayedBefore()) || playerJoinForceSave) {
-            target.put("uuid", player.getUniqueId().toString());
-            target.put("lastName", player.getName());
-            target.put("time", chat.ticksPlayed(player) + 1);
-            target.put("joins", player.getStatistic(Statistic.LEAVE_GAME) + 1);
-            target.put("session", chat.ticksPlayed(player));
-            Bukkit.getScheduler().runTaskAsynchronously(this, () -> writePlayer(target));
-        }
+        if (!(player.hasPlayedBefore()) || playerJoinForceSave)
+            savePlayer(player);
     }
 
     public int getPlayerSession(final String name) {
@@ -153,57 +144,50 @@ public class Main extends JavaPlugin implements Listener {
         target.put("time", chat.ticksPlayed(player));
         target.put("joins", player.getStatistic(Statistic.LEAVE_GAME) + 1);
         target.put("session", chat.ticksPlayed(player));
-        if (!Bukkit.getPluginManager().isPluginEnabled(this))
-            writePlayer(target);
-        else
-            Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> writePlayer(target));
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> writePlayer(target));
     }
 
     @SuppressWarnings("unchecked")
     private void writePlayer(JSONObject target) {
-        if (Bukkit.getPluginManager().isPluginEnabled(this) && Bukkit.isPrimaryThread()) {
-            final JSONObject finalTarget = target;
-            Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> writePlayer(finalTarget));
-            return;
-        }
+        synchronized (fileLock) {
+            JSONParser jsonParser = new JSONParser();
+            JSONArray players = new JSONArray();;
+            List<JSONObject> list = new ArrayList<>();
 
-        JSONParser jsonParser = new JSONParser();
-        JSONArray players = new JSONArray();;
-        List<JSONObject> list = new ArrayList<>();
-
-        try (FileReader reader = new FileReader(storagePath)) {
-            Object obj = jsonParser.parse(reader);
-            
-            if (obj instanceof JSONArray) {
-                players = (JSONArray) obj;
-            } else if (obj instanceof JSONObject) {
-                JSONObject singleObject = (JSONObject) obj;
-                players.add(singleObject);
-            }
-
-            for (Object player : players) {
-                JSONObject player_JSON = (JSONObject) player;
-                if (!player_JSON.get("uuid").equals(target.get("uuid")))
-                    list.add(player_JSON);
-            }
-            for (int i = 0; i < list.size(); i++) {
-                if (Integer.parseInt(target.get("time").toString()) > Integer
-                        .parseInt(list.get(i).get("time").toString())) {
-                    JSONObject temp = list.get(i);
-                    list.set(i, target);
-                    target = temp;
+            try (FileReader reader = new FileReader(storagePath)) {
+                Object obj = jsonParser.parse(reader);
+                
+                if (obj instanceof JSONArray) {
+                    players = (JSONArray) obj;
+                } else if (obj instanceof JSONObject) {
+                    JSONObject singleObject = (JSONObject) obj;
+                    players.add(singleObject);
                 }
+
+                for (Object player : players) {
+                    JSONObject player_JSON = (JSONObject) player;
+                    if (!player_JSON.get("uuid").equals(target.get("uuid")))
+                        list.add(player_JSON);
+                }
+                for (int i = 0; i < list.size(); i++) {
+                    if (Integer.parseInt(target.get("time").toString()) > Integer
+                            .parseInt(list.get(i).get("time").toString())) {
+                        JSONObject temp = list.get(i);
+                        list.set(i, target);
+                        target = temp;
+                    }
+                }
+                list.add(target);
+                JSONArray sortedPlayers = new JSONArray();
+                sortedPlayers.addAll(list);
+                try (FileWriter writer = new FileWriter(storagePath)) {
+                    writer.write(sortedPlayers.toJSONString().replace(",", ",\n").replace("{", "{\n").replace("}", "\n}"));
+                    writer.flush();
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                players = new JSONArray();
             }
-            list.add(target);
-            JSONArray sortedPlayers = new JSONArray();
-            sortedPlayers.addAll(list);
-            try (FileWriter writer = new FileWriter(storagePath)) {
-                writer.write(sortedPlayers.toJSONString().replace(",", ",\n").replace("{", "{\n").replace("}", "\n}"));
-                writer.flush();
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            players = new JSONArray();
         }
     }
 }
